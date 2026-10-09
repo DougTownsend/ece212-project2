@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+  <rect width="760" height="460" fill="#ffffff"/>
+
+  <!-- 16-bit random value -->
+  <text x="380" y="22" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">random[15:0]  (output of xorshift798)</text>
+  <g font-size="14" fill="#222" text-anchor="middle">
+    <rect x="60"  y="32" width="160" height="38" fill="#dbe8f7" stroke="#222" stroke-width="1.5"/>
+    <rect x="220" y="32" width="160" height="38" fill="#dbe8f7" stroke="#222" stroke-width="1.5"/>
+    <rect x="380" y="32" width="160" height="38" fill="#dbe8f7" stroke="#222" stroke-width="1.5"/>
+    <rect x="540" y="32" width="160" height="38" fill="#dbe8f7" stroke="#222" stroke-width="1.5"/>
+    <text x="140" y="56">random[15:12]</text>
+    <text x="300" y="56">random[11:8]</text>
+    <text x="460" y="56">random[7:4]</text>
+    <text x="620" y="56">random[3:0]</text>
+  </g>
+
+  <!-- nibbles to first-level adders -->
+  <g fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)">
+    <path d="M140,70 V110 H170 V150"/>
+    <path d="M300,70 V110 H270 V150"/>
+    <path d="M620,70 V110 H590 V150"/>
+    <path d="M460,70 V110 H490 V150"/>
+  </g>
+  <g font-size="12" fill="#555">
+    <text x="176" y="142">4</text>
+    <text x="276" y="142">4</text>
+    <text x="496" y="142">4</text>
+    <text x="596" y="142">4</text>
+  </g>
+
+  <!-- first-level adders -->
+  <g text-anchor="middle" fill="#222">
+    <rect x="120" y="150" width="200" height="70" rx="8" fill="#fbe3c4" stroke="#222" stroke-width="1.5"/>
+    <text x="220" y="180" font-size="15" font-weight="bold">add2</text>
+    <text x="220" y="200" font-size="13">ones_comp_add</text>
+    <rect x="440" y="150" width="200" height="70" rx="8" fill="#fbe3c4" stroke="#222" stroke-width="1.5"/>
+    <text x="540" y="180" font-size="15" font-weight="bold">add1</text>
+    <text x="540" y="200" font-size="13">ones_comp_add</text>
+  </g>
+
+  <!-- intermediate results to final adder -->
+  <g fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)">
+    <path d="M220,220 V255 H330 V290"/>
+    <path d="M540,220 V255 H430 V290"/>
+  </g>
+  <g font-size="14" font-weight="bold" fill="#222">
+    <text x="228" y="245">b[3:0]</text>
+    <text x="548" y="245">a[3:0]</text>
+  </g>
+
+  <!-- final adder -->
+  <g text-anchor="middle" fill="#222">
+    <rect x="280" y="290" width="200" height="70" rx="8" fill="#fbe3c4" stroke="#222" stroke-width="1.5"/>
+    <text x="380" y="320" font-size="15" font-weight="bold">add3</text>
+    <text x="380" y="340" font-size="13">ones_comp_add</text>
+  </g>
+
+  <!-- key output -->
+  <path d="M380,360 V400" fill="none" stroke="#222" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="300" y="400" width="160" height="38" rx="19" fill="#d6f0d6" stroke="#222" stroke-width="1.5"/>
+  <text x="380" y="424" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">key[3:0]</text>
+  <text x="472" y="424" font-size="13" fill="#555">nonzero 4-bit XOR key</text></svg>
