@@ -16,7 +16,7 @@ module main(
     enigma will take inputs from the buttons and switches
         -btn[0] OR btn[1] will be the clock
         -btn[1] will be the reset
-        -sw[7:4] will be the seed
+        -sw[7:0] will be the seed
         -sw[3:0] will be the input
 
     btn[0] and btn[1] must be debounced, since they are being used as a clock.
