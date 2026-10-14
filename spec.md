@@ -185,7 +185,146 @@ For the LEDs and the seven-segment display, we will implement the following beha
 
 ## Testing with the Analog Discovery
 
-TODO: Add Analog Discovery Procedure
+First, you will need to download WaveForms, the software that controls the Analog Discovery. If you are on Linux, you will first need to install the Adept 2 Runtime as well.
+
+**Linux Only:** The Adept 2 runtime can be found [here](https://digilent.com/reference/software/adept/start). Click on "Download Now" under "Linux Runtime" on the right.
+
+**All Operating Systems:** Download WaveForms [here](https://digilent.com/reference/software/waveforms/waveforms-3/start). Digilent is very annoying, and will make you create an account to download this. Then it will take you to a different "Products" page. Search for "WaveForms" there, then click it and choose the download for your operating system. I do not know why companies do this.
+
+Once you have WaveForms installed, open it to see the welcome screen. This is where you can open the different tools that are part of the AD3.
+
+![WaveForms welcome screen](images/waveforms1.png)
+
+For this project, we will be using the pattern generator, waveform generator, and the logic analyzer. The pattern generator will feed the 4-bit inputs to our circuit, the waveform generator will control the clock and reset signals, and the logic analyzer will allow us to see how they change with time, similar to what we would see on the waveform viewer when we simulate with Apio.
+
+### Connecting the AD3 to your circuit
+
+The AD3 has 16 digital I/O pins labeled 0-15. To make it clearer, I will refer to these as DIO0-DIO15. The two waveform generator outputs are labeled W1 and W2. You will need to make the following connections. The shift register connections are to the shift register that is driving the eight individual LEDs.
+
+| AD3 | Breadboard |
+| -- | -- |
+| DIO0 | `sw[0]` |
+| DIO1 | `sw[1]` |
+| DIO2 | `sw[2]` |
+| DIO3 | `sw[3]` |
+| DIO4 | Shift reg 1 pin 14 (Q4) |
+| DIO5 | Shift reg 1 pin 13 (Q5) |
+| DIO6 | Shift reg 1 pin 12 (Q6) |
+| DIO7 | Shift reg 1 pin 11 (Q7) |
+| W1 | `btn[1]` |
+| W2 | `btn[0]` |
+
+### Pattern Generator
+
+Open the pattern generator by clicking "Patterns" on the welcome page. We will need to set up DIO0-DIO3 to output a 4-bit signal into our circuit. This will be the plain text input to the cipher. We will just make it a counter that increments each clock cycle. Since we are constrained to a 1kHz clock in the Pico, we will make this 6.4Hz. This will allow us to clearly see the changes on the circuit, but not have to wait too long to capture the output in the logic analyzer. To add the counter, click the plus icon and then click "Bus."
+
+![Adding a bus to pattern generator](images/waveforms2.png)
+
+Now add DIO0-DIO3 to the "selected" column. You can do this by selecting DIO0, then holding shift and clicking DIO3, then clicking the plus icon.
+
+![Adding DIO0-DIO3 to bus](images/waveforms3.png)
+
+You should now see this:
+
+![Unmodified bus in pattern generator](images/waveforms4.png)
+
+Under "Type" where it currently says "Constant", click and change it to "Binary Counter." It will default to 1kHz, but that is too fast. Change it to 6.4Hz. You can do this by typing "6.4 Hz" into the Parameter 1 field.
+
+![Binary counter set up in pattern generator](images/waveforms5.png)
+
+Now, if you click the run button, you should be able to see the counting pattern on `led[3:0]`, and the 7-segment display will change along with it, but don't worry about what is displayed on it.
+
+### Logic Analyzer
+
+We now want to be able to see `sw[3:0]` and `led[3:0]` as they change over time. Go back to the Welcome tab, and click "Logic." This will open the logic analyzer.
+
+![Logic analyzer](images/waveforms6.png)
+
+Just like how you did with the pattern generator, click the plus, select "Bus," and add DIO0-DIO3 to the bus. This will allow us to see the counter values.
+
+![Logic analyzer after adding bus](images/waveforms7.png)
+
+Right now, there are two things we need to fix. First, we need to zoom out to be able to see all the counter values from 0-15. Second, we need to collapse the bus view, so that we do not see the individual DIO signals. We do not care about them. We only care about the 4-bit value.
+
+There are two ways to adjust the zoom. One is to scroll with the mouse wheel or a two-finger touchpad gesture; the other is to adjust the time per division. Using the mouse wheel can be finicky, so just set the time per division to 300ms, as shown below.
+
+![Logic analyzer after adjusting timescale](images/waveforms8.png)
+
+It will now start continuously scanning. This makes it hard to read, but can be fixed by adding a trigger. The trigger on a logic analyzer or oscilloscope is what determines where t=0 is. We want to set t=0 to be the point that the counter is outputting 0. We can do this by clicking the empty cell under the "T" column next to the label "Bus" and clicking "Enable protocol trigger" as shown below.
+
+![Enabling protocol trigger](images/waveforms9.png)
+
+Now the blank cell should turn into an arrow. Click that to open the trigger menu, then just click OK, since it defaults to 0.
+
+![Setting protocol trigger to 0](images/waveforms10.png)
+
+Because we are zoomed out so far, WaveForms still does not use the trigger by default. To fix this, click the drop-down menu that says "Screen" and change it to "Repeated."
+
+![Setting mode to Repeated](images/waveforms11.png)
+
+It will now stop scanning, and only update every few seconds. We now want to move t=0 so that it is on the left of the screen. This can be done either by clicking and dragging the triangle at t=0 over to the left, or by changing the value above where you set the time per division to 1.2s. Either one works.
+
+![Moving t=0](images/waveforms12.png)
+
+Now, to hide the individual signals, click the "-" next to "Bus."
+
+![Collapsed bus](images/waveforms13.png)
+
+Now add another bus that shows DIO4-DIO7 and hide its individual signals as well. It will be slightly offset from the input bus, since it takes time to write to the shift register. The two buses will show the same signals for now. Pressing `btn[2]` will cause the output of the Enigma machine to appear on the second bus.
+
+![Added LED bus](images/waveforms14.png)
+
+### Waveform Generator
+
+We now need to provide the clock and reset signals. For this we will use the waveform generator. This will allow us to synchronize the reset with the input being 0, allowing a consistent output on the logic analyzer. Go back to the welcome tab and click "Wavegen."
+
+![Waveform generator](images/waveforms15.png)
+
+We will need both channels, so click the drop-down menu with the green check labeled "Channels" and check Channel 2.
+
+![Added Channel 2](images/waveforms16.png)
+
+Now, for both, set the type to "Square," set the amplitude to 1.5V, and the offset to 1.5V. This will create a signal that oscillates between 0V and 3V.
+
+![Set common settings](images/waveforms17.png)
+
+Channel 1 is going to be the reset signal. We only want it to be high for a short pulse at the beginning. We can achieve this by setting its "symmetry" to 1%. We only want it to pulse at the start of the counter sequence, so we need to make the frequency 1/16 of the 6.4Hz everything else is running at, so make its frequency 400mHz.
+
+![Set W1 settings](images/waveforms18.png)
+
+Channel 2 will be the clock, so all we need to do is set its frequency to 6.4Hz.
+
+![Set W2 settings](images/waveforms19.png)
+
+Now click the green play button at the top left that says "Run All." You should now see the key on `led[7:4]` changing.
+
+### Synchronizing
+
+The last thing we need to do is synchronize the pattern generator with the reset signal. To do this, go back to the pattern generator tab, and where it says "Trigger" click the drop-down menu that defaults to "None" and select "Wavegen C1."
+
+![Set patterns trigger to be Wavegen C1](images/waveforms20.png)
+
+**Now you need to click stop, and then click run again on the pattern generator.** This will make it start counting from 0 the first time it sees a rising edge on W1.
+
+Now, if you go to the logic analyzer, and hold down `btn[2]`, you will see the plain text input on the first bus, and the cipher text output on the second bus. There will be some small glitches that show up due to the time it takes for the shift register to update, but that is okay. The image below shows what it should look like if you have `sw[7:4]` all turned OFF.
+
+![Logic analyzer showing plain text and cipher text](images/waveforms21.png)
+
+## Demo Procedure
+
+1. Instructor or TA will hold `btn[3]` and toggle all switches to confirm they work.
+
+2. Instructor or TA will confirm that the 7-segment display is functioning correctly.
+
+3. All switches will be placed in the OFF position.
+
+4. Pattern generator, waveform generator, and logic analyzer will be enabled, as described in the previous section.
+
+5. Instructor or TA will set `sw[7:4]` to a specific value, to modify the seed.
+
+6. Instructor or TA will observe the inputs on the logic analyzer, and confirm that they are shown on `led[3:0]`.
+
+7. Instructor or TA will hold `btn[2]` to display the cipher text on `led[3:0]` and confirm that the output is correct.
 
 ## Rubric
 
